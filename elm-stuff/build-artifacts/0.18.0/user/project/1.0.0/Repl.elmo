@@ -1,6 +1,22 @@
 var _user$project$Repl$t_s_o_l = {ctor: '_Tuple0'};
-var _user$project$Repl$splitA = F2(
+var _user$project$Repl$stringA = F2(
 	function (separator, str) {
-		return _elm_lang$core$String$split;
+		return A2(_elm_lang$core$String$split, separator, str);
 	});
-var _user$project$Repl$d_e_l_t_r_o_n_3_0_3_0 = _user$project$Repl$splitA;
+var _user$project$Repl$nums = {
+	ctor: '::',
+	_0: '123-3',
+	_1: {
+		ctor: '::',
+		_0: '456-7',
+		_1: {
+			ctor: '::',
+			_0: '89-10',
+			_1: {ctor: '[]'}
+		}
+	}
+};
+var _user$project$Repl$d_e_l_t_r_o_n_3_0_3_0 = A2(
+	_elm_lang$core$List$map,
+	_user$project$Repl$stringA('-'),
+	_user$project$Repl$nums);

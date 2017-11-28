@@ -1,3 +1,9 @@
+var _user$project$PhotoGroove$update = F2(
+	function (msg, model) {
+		return _elm_lang$core$Native_Utils.eq(msg.operation, 'SELECT_PHOTO') ? _elm_lang$core$Native_Utils.update(
+			model,
+			{selectedUrl: msg.data}) : model;
+	});
 var _user$project$PhotoGroove$initialModel = {
 	photos: {
 		ctor: '::',
@@ -35,7 +41,12 @@ var _user$project$PhotoGroove$viewThumbnail = F2(
 							},
 							_1: {ctor: '[]'}
 						}),
-					_1: {ctor: '[]'}
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Events$onClick(
+							{operation: 'SELECT_PHOTO', data: thumbnail.url}),
+						_1: {ctor: '[]'}
+					}
 				}
 			},
 			{ctor: '[]'});
@@ -94,5 +105,5 @@ var _user$project$PhotoGroove$view = function (model) {
 			}
 		});
 };
-var _user$project$PhotoGroove$main = _elm_lang$virtual_dom$Native_VirtualDom.staticProgram(
-	_user$project$PhotoGroove$view(_user$project$PhotoGroove$initialModel));
+var _user$project$PhotoGroove$main = _elm_lang$html$Html$beginnerProgram(
+	{model: _user$project$PhotoGroove$initialModel, view: _user$project$PhotoGroove$view, update: _user$project$PhotoGroove$update})();
