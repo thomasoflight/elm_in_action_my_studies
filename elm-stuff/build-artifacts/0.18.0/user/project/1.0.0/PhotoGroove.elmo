@@ -20,6 +20,7 @@ var _user$project$PhotoGroove$initialModel = {
 	},
 	selectedUrl: '1.jpeg'
 };
+var _user$project$PhotoGroove$photoArray = _elm_lang$core$Array$fromList(_user$project$PhotoGroove$initialModel.photos);
 var _user$project$PhotoGroove$urlPrefix = 'http://elm-in-action.com/';
 var _user$project$PhotoGroove$viewThumbnail = F2(
 	function (selectedUrl, thumbnail) {
