@@ -4,6 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Array exposing (Array)
+import Random
 
 
 urlPrefix : String
@@ -19,8 +20,14 @@ type ThumbnailSize
 
 type Msg
     = SelectByUrl String
+    | SelectByIndex Int
     | SurpriseMe
     | SetSize ThumbnailSize
+
+
+randomPhotoPicker : Random.Generator Int
+randomPhotoPicker =
+    Random.int 0 (Array.length photoArray - 1)
 
 
 view : Model -> Html Msg
@@ -51,12 +58,6 @@ viewThumbnail selectedUrl thumbnail =
         , onClick (SelectByUrl thumbnail.url)
         ]
         []
-
-
-
--- viewRadioButtonChanger : String -> Html Msg --NNNNN NNNNN NEEDS WORK
--- viewRadioButtonChanger button =
--- , onClick { operation = , data =  }
 
 
 viewSizeChooser : ThumbnailSize -> Html Msg
@@ -113,22 +114,37 @@ photoArray =
     Array.fromList initialModel.photos
 
 
-update : Msg -> Model -> Model
+getPhotoUrl : Int -> String
+getPhotoUrl index =
+    case Array.get index photoArray of
+        Just photo ->
+            photo.url
+
+        Nothing ->
+            ""
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        SelectByIndex index ->
+            ( { model | selectedUrl = getPhotoUrl index }, Cmd.none )
+
         SelectByUrl url ->
-            { model | selectedUrl = url }
+            ( { model | selectedUrl = url }, Cmd.none )
 
         SurpriseMe ->
-            { model | selectedUrl = "2.jpeg" }
+            ( model, Random.generate SelectByIndex randomPhotoPicker )
 
         SetSize size ->
-            { model | chosenSize = size }
+            ( { model | chosenSize = size }, Cmd.none )
 
 
+main : Program Never Model Msg
 main =
-    Html.beginnerProgram
-        { model = initialModel
+    Html.program
+        { init = ( initialModel, Cmd.none )
         , view = view
         , update = update
+        , subscriptions = (\model -> Sub.none)
         }
