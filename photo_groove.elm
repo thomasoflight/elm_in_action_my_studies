@@ -1,9 +1,9 @@
 module PhotoGroove exposing (..)
 
+import Array exposing (Array)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
-import Array exposing (Array)
 import Random
 
 
@@ -23,11 +23,6 @@ type Msg
     | SelectByIndex Int
     | SurpriseMe
     | SetSize ThumbnailSize
-
-
-randomPhotoPicker : Random.Generator Int
-randomPhotoPicker =
-    Random.int 0 (Array.length photoArray - 1)
 
 
 view : Model -> Html Msg
@@ -113,11 +108,6 @@ initialModel =
     }
 
 
-photoArray : Array Photo
-photoArray =
-    Array.fromList initialModel.photos
-
-
 getPhotoUrl : Int -> Maybe String
 getPhotoUrl index =
     case Array.get index photoArray of
@@ -132,12 +122,23 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         SelectByIndex index ->
-            ( { model | selectedUrl = getPhotoUrl index }, Cmd.none )
+            let
+                newSelectedUrl =
+                    model.photos
+                        |> Array.fromList
+                        |> Array.get index
+                        |> Maybe.map .url
+            in
+            ( { model | selectedUrl = newSelectedUrl }, Cmd.none )
 
         SelectByUrl url ->
             ( { model | selectedUrl = Just url }, Cmd.none )
 
         SurpriseMe ->
+            let
+                randomPhotoPicker =
+                    Random.int 0 (List.length model.photos - 1)
+            in
             ( model, Random.generate SelectByIndex randomPhotoPicker )
 
         SetSize size ->
@@ -150,5 +151,5 @@ main =
         { init = ( initialModel, Cmd.none )
         , view = view
         , update = update
-        , subscriptions = (\model -> Sub.none)
+        , subscriptions = \model -> Sub.none
         }
