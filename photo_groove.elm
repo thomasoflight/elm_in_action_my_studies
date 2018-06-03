@@ -2,10 +2,20 @@ module PhotoGroove exposing (..)
 
 import Array exposing (Array)
 import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html.Attributes exposing (class, classList, id, name, src, title, type_)
 import Html.Events exposing (onClick)
 import Http
+import Json.Decode exposing (Decoder, int, list, string)
+import Json.Decode.Pipeline exposing (decode, optional, required)
 import Random
+
+
+photoDecoder : Decoder Photo
+photoDecoder =
+    decode Photo
+        |> required "url" string
+        |> required "size" int
+        |> optional "title" string "(untitled)"
 
 
 urlPrefix : String
@@ -17,14 +27,6 @@ type ThumbnailSize
     = Small
     | Medium
     | Large
-
-
-type Msg
-    = SelectByUrl String
-    | SelectByIndex Int
-    | SurpriseMe
-    | SetSize ThumbnailSize
-    | LoadPhotos (Result Http.Error String)
 
 
 view : Model -> Html Msg
@@ -57,6 +59,7 @@ viewThumbnail : Maybe String -> Photo -> Html Msg
 viewThumbnail selectedUrl thumbnail =
     img
         [ src (urlPrefix ++ thumbnail.url)
+        , title (thumbnail.title ++ " [" ++ toString thumbnail.size ++ " KB]")
         , classList [ ( "selected", selectedUrl == Just thumbnail.url ) ]
         , onClick (SelectByUrl thumbnail.url) -- why not Just for the other thumbnail.url??
         ]
@@ -90,7 +93,10 @@ sizeToString size =
 
 
 type alias Photo =
-    { url : String }
+    { url : String
+    , size : Int
+    , title : String
+    }
 
 
 type alias Model =
@@ -108,6 +114,34 @@ initialModel =
     , loadingError = Nothing
     , chosenSize = Medium
     }
+
+
+photoArray : Array Photo
+photoArray =
+    Array.fromList initialModel.photos
+
+
+getPhotoUrl : Int -> Maybe String
+getPhotoUrl index =
+    case Array.get index photoArray of
+        Just photo ->
+            Just photo.url
+
+        Nothing ->
+            Nothing
+
+
+type Msg
+    = SelectByUrl String
+    | SelectByIndex Int
+    | SurpriseMe
+    | SetSize ThumbnailSize
+    | LoadPhotos (Result Http.Error (List Photo))
+
+
+randomPhotoPicker : Random.Generator Int
+randomPhotoPicker =
+    Random.int 0 (Array.length photoArray - 1)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -136,17 +170,10 @@ update msg model =
         SetSize size ->
             ( { model | chosenSize = size }, Cmd.none )
 
-        LoadPhotos (Ok responseStr) ->
-            let
-                urls =
-                    String.split "," responseStr
-
-                requestedPhotos =
-                    List.map Photo urls
-            in
+        LoadPhotos (Ok photos) ->
             ( { model
-                | photos = requestedPhotos
-                , selectedUrl = List.head urls
+                | photos = photos
+                , selectedUrl = Maybe.map .url (List.head photos)
               }
             , Cmd.none
             )
@@ -160,8 +187,8 @@ update msg model =
 
 
 initialCmd =
-    "http://elm-in-action.com/photos/list"
-        |> Http.getString
+    list photoDecoder
+        |> Http.get "http://elm-in-action.com/photos/list.json"
         |> Http.send LoadPhotos
 
 
